@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Tilemaker : MonoBehaviour{
     public GameObject cellPrefab;
-    private float cellSize = -1f;
+    private float cellSize = 1f;
 
     public uint rows;
     public uint columns;
@@ -22,7 +22,7 @@ public class Tilemaker : MonoBehaviour{
         }
 
         //position the object to the upper right of the screen
-        transform.position = new Vector3(4.5f, 4.5f, transform.position.z);
+        transform.position = new Vector3(-12f, -12f, transform.position.z);
         RandomizedBomb();
     }
 
@@ -45,6 +45,6 @@ public class Tilemaker : MonoBehaviour{
     }
 
     bool BombRulesCheck(Cell cellScript){
-        return cellScript.surroundingBombs <= 2;
+        return cellScript.surroundingBombs <= 3;
     }
 }
