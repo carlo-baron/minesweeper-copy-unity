@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class Cell : MonoBehaviour
@@ -37,7 +36,7 @@ public class Cell : MonoBehaviour
     }
 
     void Start(){
-        neighbors = Neighbors();
+        UpdateNeighbors();
     }
 
     void OnMouseOver()
@@ -54,16 +53,15 @@ public class Cell : MonoBehaviour
 
     void StartCheck(){
         if(isBomb){
-            BombSwap(transform, true);
+            BombSwap(this, true);
         }else{
             if(surroundingBombs == 0){
                 Reveal();
             }else{
-                print("th");
                 foreach(GameObject cell in neighbors){
                     Cell neighbor = cell.GetComponent<Cell>();
                     if(neighbor.isBomb){
-                        BombSwap(neighbor.gameObject.transform, false);
+                        BombSwap(neighbor, false);
                     }
                 }
             }
@@ -72,16 +70,18 @@ public class Cell : MonoBehaviour
         GameManager.isStart = false;
     }
 
-    void BombSwap(Transform cellToSwap, bool bombMode){
+    void BombSwap(Cell cellToSwap, bool bombMode){
         Tilemaker tilemaker = FindObjectOfType<Tilemaker>();
 
         foreach(var tuple in tilemaker.Corners()){
             Cell cornerCell = tilemaker.cellGrid[tuple.x, tuple.y].GetComponent<Cell>();
             if(!cornerCell.isBomb){
-                Vector2 thisPosition = cellToSwap.position;
-                cellToSwap.position = cornerCell.gameObject.transform.position;
+                //swap tile position
+                Vector2 thisPosition = cellToSwap.gameObject.transform.position;
+                cellToSwap.gameObject.transform.position = cornerCell.gameObject.transform.position;
                 cornerCell.gameObject.transform.position = thisPosition;
 
+                //Bomb mode is if the first revealed cell is a bomb
                 if(bombMode){
                     cornerCell.Reveal();
                     break;
@@ -89,15 +89,29 @@ public class Cell : MonoBehaviour
                     Reveal();
                 }
             }
-        } 
+        }
     }
 
     void Reveal()
     {
+        UpdateNeighbors();
         isRevealed = true;
         spriteRenderer.color = Color.blue;
 
         //check surrounding 0 cells
+        if(surroundingBombs == 0){
+            foreach(GameObject cell in neighbors){
+                Cell neighbor = cell.GetComponent<Cell>();
+                if(neighbor != this && !neighbor.isRevealed){
+                    neighbor.Reveal();
+                }
+            }
+        }
+    }
+
+    void UpdateNeighbors(){
+        neighbors.Clear();
+        neighbors = Neighbors();
     }
 
     List<GameObject> Neighbors()
