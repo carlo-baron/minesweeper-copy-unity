@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.R)){
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            isStart = true;
         }
     }
 }

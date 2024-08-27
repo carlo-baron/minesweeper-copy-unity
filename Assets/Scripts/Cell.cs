@@ -27,6 +27,8 @@ public class Cell : MonoBehaviour
 
             return bombCount;
         }
+
+        private set {}
     }
     void Awake()
     {
@@ -34,6 +36,9 @@ public class Cell : MonoBehaviour
         boxCollider2D = GetComponent<BoxCollider2D>();
     }
 
+    void Start(){
+        neighbors = Neighbors();
+    }
 
     void OnMouseOver()
     {
@@ -49,23 +54,42 @@ public class Cell : MonoBehaviour
 
     void StartCheck(){
         if(isBomb){
-            Tilemaker tilemaker = FindObjectOfType<Tilemaker>();
-
-            foreach(var tuple in tilemaker.Corners()){
-                Cell cornerCell = tilemaker.cellGrid[tuple.x, tuple.y].GetComponent<Cell>();
-                if(!cornerCell.isBomb){
-                    Vector2 thisPosition = transform.position;
-                    transform.position = cornerCell.gameObject.transform.position;
-                    cornerCell.gameObject.transform.position = thisPosition;
-                    cornerCell.Reveal();
-                    break;
-                }
-            } 
+            BombSwap(transform, true);
         }else{
-            Reveal();
+            if(surroundingBombs == 0){
+                Reveal();
+            }else{
+                print("th");
+                foreach(GameObject cell in neighbors){
+                    Cell neighbor = cell.GetComponent<Cell>();
+                    if(neighbor.isBomb){
+                        BombSwap(neighbor.gameObject.transform, false);
+                    }
+                }
+            }
         }
 
         GameManager.isStart = false;
+    }
+
+    void BombSwap(Transform cellToSwap, bool bombMode){
+        Tilemaker tilemaker = FindObjectOfType<Tilemaker>();
+
+        foreach(var tuple in tilemaker.Corners()){
+            Cell cornerCell = tilemaker.cellGrid[tuple.x, tuple.y].GetComponent<Cell>();
+            if(!cornerCell.isBomb){
+                Vector2 thisPosition = cellToSwap.position;
+                cellToSwap.position = cornerCell.gameObject.transform.position;
+                cornerCell.gameObject.transform.position = thisPosition;
+
+                if(bombMode){
+                    cornerCell.Reveal();
+                    break;
+                }else{
+                    Reveal();
+                }
+            }
+        } 
     }
 
     void Reveal()
@@ -78,7 +102,7 @@ public class Cell : MonoBehaviour
 
     List<GameObject> Neighbors()
     {
-        LayerMask layer = gameObject.layer;
+        int layer = LayerMask.GetMask("Tile");
 
         RaycastHit2D[] rays = Physics2D.BoxCastAll(boxCollider2D.bounds.center, boxCollider2D.size, 0f, Vector2.zero, Mathf.Infinity, layer);
 
