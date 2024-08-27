@@ -34,18 +34,46 @@ public class Cell : MonoBehaviour
         boxCollider2D = GetComponent<BoxCollider2D>();
     }
 
+
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Reveal();
+            if(!GameManager.isStart){
+                Reveal();
+            }else{
+                StartCheck();
+            }
         }
     }
 
-    public void Reveal()
+    void StartCheck(){
+        if(isBomb){
+            Tilemaker tilemaker = FindObjectOfType<Tilemaker>();
+
+            foreach(var tuple in tilemaker.Corners()){
+                Cell cornerCell = tilemaker.cellGrid[tuple.x, tuple.y].GetComponent<Cell>();
+                if(!cornerCell.isBomb){
+                    Vector2 thisPosition = transform.position;
+                    transform.position = cornerCell.gameObject.transform.position;
+                    cornerCell.gameObject.transform.position = thisPosition;
+                    cornerCell.Reveal();
+                    break;
+                }
+            } 
+        }else{
+            Reveal();
+        }
+
+        GameManager.isStart = false;
+    }
+
+    void Reveal()
     {
         isRevealed = true;
         spriteRenderer.color = Color.blue;
+
+        //check surrounding 0 cells
     }
 
     List<GameObject> Neighbors()

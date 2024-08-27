@@ -9,7 +9,7 @@ public class Tilemaker : MonoBehaviour{
     public uint maxBombs;
     private uint currentBombs = 0;
 
-    private GameObject[,] cellGrid;
+    public GameObject[,] cellGrid { get; private set; }
 
     void Awake(){
         cellGrid = new GameObject[rows, columns];
@@ -46,5 +46,14 @@ public class Tilemaker : MonoBehaviour{
 
     bool BombRulesCheck(Cell cellScript){
         return cellScript.surroundingBombs <= 3;
+    }
+
+    public (uint x, uint y)[] Corners(){
+        return new (uint x, uint y)[]{
+            (0,0),
+            (0, columns - 1),
+            (rows - 1, columns - 1),
+            (rows - 1, 0)
+        };
     }
 }
