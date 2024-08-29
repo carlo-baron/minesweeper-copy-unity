@@ -45,7 +45,7 @@ public class Tilemaker : MonoBehaviour{
     }
 
     bool BombRulesCheck(Cell cellScript){
-        return cellScript.surroundingBombs <= 3;
+        return cellScript.SurroundingBombs() <= 3;
     }
 
     public (uint x, uint y)[] Corners(){

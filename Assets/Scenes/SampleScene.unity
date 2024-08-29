@@ -329,4 +329,4 @@ MonoBehaviour:
   cellPrefab: {fileID: 3893107744439240193, guid: b47cac062cbc1774d82fb9e789df343a, type: 3}
   rows: 25
   columns: 25
-  maxBombs: 50
+  maxBombs: 100

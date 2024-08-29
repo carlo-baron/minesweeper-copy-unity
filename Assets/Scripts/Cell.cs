@@ -10,59 +10,67 @@ public class Cell : MonoBehaviour
 
     private BoxCollider2D boxCollider2D;
 
-    public List<GameObject> neighbors { get; private set; } = new List<GameObject>();
+    // public int surroundingBombs
+    // {
+    //     get
+    //     {
+    //         int bombCount = 0;
+    //         foreach (GameObject cell in Neighbors()){
+    //             Cell cellScript = cell.GetComponent<Cell>();
+    //             if(cellScript.isBomb){
+    //                 bombCount++;
+    //             }
+    //         }
 
-    public int surroundingBombs
-    {
-        get
-        {
-            int bombCount = 0;
-            foreach (GameObject cell in neighbors){
-                Cell cellScript = cell.GetComponent<Cell>();
-                if(cellScript.isBomb){
-                    bombCount++;
-                }
-            }
+    //         return bombCount;
+    //     }
 
-            return bombCount;
-        }
+    //     private set {}
+    // }
 
-        private set {}
-    }
+    public int count;
+
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         boxCollider2D = GetComponent<BoxCollider2D>();
     }
 
-    void Start(){
-        UpdateNeighbors();
+    void Update()
+    {
+        count = SurroundingBombs();
     }
 
     void OnMouseOver()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if(!GameManager.isStart){
+            if (!GameManager.isStart)
+            {
                 Reveal();
-            }else{
+            }
+            else
+            {
                 StartCheck();
+                Reveal();
             }
         }
     }
 
-    void StartCheck(){
-        if(isBomb){
-            BombSwap(this, true);
-        }else{
-            if(surroundingBombs == 0){
-                Reveal();
-            }else{
-                foreach(GameObject cell in neighbors){
-                    Cell neighbor = cell.GetComponent<Cell>();
-                    if(neighbor.isBomb){
-                        BombSwap(neighbor, false);
-                    }
+    void StartCheck()
+    {
+        if (SurroundingBombs() == 0)
+        {
+            Reveal();
+        }
+        else
+        {
+            foreach (GameObject cell in Neighbors())
+            {
+                Cell neighbor = cell.GetComponent<Cell>();
+                if (neighbor.isBomb)
+                {
+                    BombSwap(neighbor);
                 }
             }
         }
@@ -70,48 +78,66 @@ public class Cell : MonoBehaviour
         GameManager.isStart = false;
     }
 
-    void BombSwap(Cell cellToSwap, bool bombMode){
+    void BombSwap(Cell cellToSwap)
+    {
         Tilemaker tilemaker = FindObjectOfType<Tilemaker>();
 
-        foreach(var tuple in tilemaker.Corners()){
+        foreach (var tuple in tilemaker.Corners())
+        {
             Cell cornerCell = tilemaker.cellGrid[tuple.x, tuple.y].GetComponent<Cell>();
-            if(!cornerCell.isBomb){
+            if (!cornerCell.isBomb)
+            {
                 //swap tile position
                 Vector2 thisPosition = cellToSwap.gameObject.transform.position;
                 cellToSwap.gameObject.transform.position = cornerCell.gameObject.transform.position;
                 cornerCell.gameObject.transform.position = thisPosition;
 
-                //Bomb mode is if the first revealed cell is a bomb
-                if(bombMode){
-                    cornerCell.Reveal();
-                    break;
-                }else{
-                    Reveal();
-                }
+                UpdateNeighborBombCounts(cornerCell);
+                UpdateNeighborBombCounts(cellToSwap);
             }
         }
     }
 
+    void UpdateNeighborBombCounts(Cell cell)
+    {
+        cell.count = cell.SurroundingBombs();
+        print(cell.count);
+    }
+
     void Reveal()
     {
-        UpdateNeighbors();
         isRevealed = true;
         spriteRenderer.color = Color.blue;
 
+        count = SurroundingBombs();
+
         //check surrounding 0 cells
-        if(surroundingBombs == 0){
-            foreach(GameObject cell in neighbors){
+        if (count == 0)
+        {
+            foreach (GameObject cell in Neighbors())
+            {
                 Cell neighbor = cell.GetComponent<Cell>();
-                if(neighbor != this && !neighbor.isRevealed){
+                if (neighbor != this && !neighbor.isRevealed)
+                {
                     neighbor.Reveal();
                 }
             }
         }
     }
 
-    void UpdateNeighbors(){
-        neighbors.Clear();
-        neighbors = Neighbors();
+    public int SurroundingBombs()
+    {
+        int bombCount = 0;
+        foreach (GameObject cell in Neighbors())
+        {
+            Cell cellScript = cell.GetComponent<Cell>();
+            if (cellScript.isBomb)
+            {
+                bombCount++;
+            }
+        }
+
+        return bombCount;
     }
 
     List<GameObject> Neighbors()
